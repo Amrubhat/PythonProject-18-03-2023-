@@ -1,32 +1,26 @@
 import cv2
-
 from pyzbar.pyzbar import decode
-from pyzbar.pyzbar import ZBarSymbol
-
+import numpy as np
 cap=cv2.VideoCapture(0)
 cap.set(3,640)
 cap.set(4,480)
-
-
-
-# img = cv2.imread(img_fn,cv2.IMREAD_GRAYSCALE)
-# ret, bw_im = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-# barcodes = pyzbar.decode(bw_im, symbols=[ZBarSymbol.QRCODE])
-# camera=True
-# while camera==True:
-#     success,frame=cap.read()
-#     for code in decode(frame):
-#         print(code.type)
-#         print(code.data.decode('utf-8'))
-#     cv2.imshow('Testing-code-scan',frame)
-#     cv2.waitKey(1)
 while True:
     success,img=cap.read()
-
-
-    for barcode in decode(img):
+    ret, bw_im = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+    # zbar
+   
+    for barcode in decode(bw_im):
         print(barcode.data)
         mydata=barcode.data.decode('utf-8')
         print(mydata)
+        pts=np.array([barcode.polygon],np.int32)
+        pts=pts.reshape((-1,1,2))
+        cv2.polylines(bw_im,[pts],True,(255,0,255),5)
+        pts2=barcode.rect
+        cv2.putText(bw_im,mydata,(pts2[0],pts2[1]),cv2.FONT_HERSHEY_COMPLEX,0.9,(255,0,255),4)
+
     cv2.imshow('Result',img)
-    cv2.waitKey(1)
+    
+    k=cv2.waitKey(1)
+    if k==27:
+        break
