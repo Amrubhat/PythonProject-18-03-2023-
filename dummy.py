@@ -1,58 +1,86 @@
 import cv2
+from pyzbar.pyzbar import decode
 import numpy as np
-import pyzbar.pyzbar as pyzbar
-import sys
-import time
-import pybase64
+import sqlite3
 from datetime import datetime
+import sqlite3
+import pandas as pd
+import pygsheets
 
-now = datetime.now()
+connection = sqlite3.connect('attendance.db')
+c = connection.cursor()
+c.execute('CREATE TABLE IF NOT EXISTS attendance (usn TEXT,time TEXT)')
 
-current_time = now.strftime("%H:%M:%S")
+mydata=0
+# Get student names and barcodes
 
-a=0
+# c.execute("SELECT * FROM attendance")
+# item=c.fetchall()
 cap=cv2.VideoCapture(0)
 cap.set(3,640)
 cap.set(4,480)
-names=[]
-fob=open('attendance.txt','a+')
-# def enterdata(z):
-#     if z in names:
-#         pass
-#     else:
-#         names.append(z)
-#         z=".join(str(z))"
-#         fob.write(z+'\n')
-#         return names
-print('reading code...')
-
-# def checkdata(data):
-#     data=str(data)
-#     if data in names:
-#         print('Already present')
-#     else:
-#         print(data+'Marked present')
-#         enterdata(data)
-#     return 1
-
 while True:
-    
-    _,frame=cap.read()
-    ret, bw_im = cv2.threshold(frame, 127, 255, cv2.THRESH_BINARY)
-    decode=pyzbar.decode(frame)
-    for obj in decode:
-        a=obj.data.decode('utf-8')
-        fob.write(a+current_time+'\n')
-        # mydata=obj.data.decode('utf-8')
-        # pts=np.array([obj.polygon],np.int32)
-        # pts=pts.reshape((-1,1,2))
-        # cv2.polylines(bw_im,[pts],True,(255,0,255),5)
-        # pts2=obj.rect
-        # cv2.putText(bw_im,decode,(pts2[0],pts2[1]),cv2.FONT_HERSHEY_COMPLEX,0.9,(255,0,255),4)
-        time.sleep(1)
-    cv2.imshow('Result',frame)
-    if cv2.waitKey(1)==1 or a!=0:
-        cv2.destroyAllWindows()
+   
+    success,img=cap.read()
+    ret, bw_im = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+       
+       # zbar
+   
+    for barcode in decode(bw_im):
+        print(barcode.data)
+        mydata=barcode.data.decode('utf-8')
+        print(mydata)
+    if mydata!=0:
         break
-fob.close()
+    cv2.imshow('Result',img)
+    if mydata==True:
+        break
+    
+    k=cv2.waitKey(1)
+    if k==27:
+        break
 
+# for barcode in decode(bw_im):
+
+
+print(mydata)
+usn=mydata
+time = datetime.now().strftime('%H:%M:%S')
+c.execute('INSERT INTO attendance ( usn, time) VALUES (?, ?)',(usn,  time))
+q=c.fetchall()
+print(q)
+
+connection.commit()
+connection.close()
+cap.release()
+
+my_path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\\attendance.db" #Change the path 
+my_conn = sqlite3.connect(my_path)
+print("Connected to database successfully")
+
+
+
+try:
+    query="SELECT * FROM attendance" # query to collect record 
+    df = pd.read_sql(query,my_conn,index_col='usn') # create DataFrame
+    print(df.head(4))
+except sqlite3.Error as e:
+    #print(e)
+  error = str(e.__dict__['orig'])
+  print(error)
+else:
+  print("DataFrame created successfully..") 
+
+path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\\scanner.json"
+gc = pygsheets.authorize(service_account_file=path)
+sheetname='cnk'
+sh=gc.open(sheetname)
+wks = sh.worksheet_by_title('std')
+
+# wks.update_value('A1',42)
+# wks.update_value('A2',45)
+
+# print('done')
+wks.clear()
+wks.set_dataframe(df,(1,1),copy_index=True,extend=True)  
+ 
