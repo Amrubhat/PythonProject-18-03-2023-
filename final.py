@@ -1,6 +1,5 @@
 import cv2
 from pyzbar.pyzbar import decode
-import numpy as np
 import sqlite3
 from datetime import datetime
 import sqlite3
@@ -11,7 +10,7 @@ connection = sqlite3.connect('attendance.db')
 c = connection.cursor()
 eligibility="ineligible"
 mydata=0
-classes_held=10
+classes_held=5
 
 print("Reading...")
 cap=cv2.VideoCapture(0)
@@ -41,24 +40,27 @@ for tuple in row:
 
 status = 'present'
 attended=int(attended+1)
-time = datetime.now().strftime('%H:%M:%S')
-classes_held=10
-percentage = round((attended / classes_held) * 100, 2)
 
+time = datetime.now().strftime('%H:%M:%S')
+classes_held=5
+percentage = round((attended / classes_held) * 100, 2)
 if percentage>=85:
     eligibility="eligible"
 
+if attended<=classes_held:
+    c.execute('''UPDATE attendance 
+        SET status='present',
+            time=?,
+            attended=?,
+            classes_held=?,
+            percentage=?,
+            eligibility=?
+        WHERE
+            usn=?;
+    ''',(time,attended,classes_held,percentage,eligibility,wer,))
+else:
+    print("Last working day of current semester is over")
 
-c.execute('''UPDATE attendance 
-    SET status='present',
-        time=?,
-        n_days=n_days+1,
-        classes_held=?,
-        percentage=?,
-        eligibility=?
-    WHERE
-        usn=?;
-''',(time,classes_held,percentage,eligibility,wer,))
 
 connection.commit()
 connection.close()

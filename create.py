@@ -10,10 +10,10 @@ import pygsheets
 connection = sqlite3.connect('attendance.db')
 c = connection.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS attendance (id REAL, name TEXT,usn TEXT, status TEXT , 
-          time TEXT ,n_days REAL,classes_held REAL,percentage REAL,eligibility TEXT)''')
+          time TEXT ,attended REAL,classes_held REAL,percentage REAL,eligibility TEXT)''')
 
 mydata=0
-classes_held=10
+classes_held=5
 eligibility="ineligible"
 students=[(1,'Amrutha Bhat','1BM21IS','NULL','NULL',0,classes_held,0,'ineligible'),
           (2,'Chaya','1BM21IS049','NULL','NULL',0,classes_held,0,'ineligible'),
