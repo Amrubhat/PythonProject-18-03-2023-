@@ -13,7 +13,7 @@ c.execute('CREATE TABLE IF NOT EXISTS attendance (id REAL, name TEXT,usn TEXT, s
 
 mydata=0
 # Get student names and barcodes
-students=[('1','vinuta','1BM21IS204','NULL','NULL','NULL'),('2','srushti','1BM21IS181','NULL','NULL','NULL')]
+students=[(1,'vinuta','1BM21IS204','NULL','NULL',0),(2,'srushti','1BM21IS181','NULL','NULL',0)]
 c.executemany("INSERT OR REPLACE INTO attendance VALUES(?,?,?,?,?,?)",students)
 # c.execute("SELECT * FROM attendance")
 # item=c.fetchall()
@@ -48,20 +48,28 @@ while True:
         break
 print("out of while loop")
 print(mydata)
-c.execute("SELECT * FROM attendance WHERE usn=?", ('1BM21IS181',))
+wer=mydata.strip()
+c.execute("SELECT * FROM attendance WHERE usn=?", (mydata.strip(),))
 row = c.fetchall()
 print(row)
+
 # for barcode in decode(bw_im):
 for tuple in row:
     id,name,usn,status,time,n_days=tuple
-    print(name,usn)
-    print(mydata)
 
-print(usn)
 status = 'present'
-n_days=+1
+n_days=int(n_days+1)
 time = datetime.now().strftime('%H:%M:%S')
-c.execute('INSERT INTO attendance ( status, time, n_days) VALUES (?, ?, ?)',(status,  time,n_days))
+# c.execute('UPDATE attendance SET ( status, time, n_days) VALUES (?, ?, ?) WHERE usn=wer',(status,  time,n_days))
+c.execute('''UPDATE attendance 
+    SET status='present',
+        time=?,
+        n_days=n_days+1
+    WHERE
+        usn=?;
+''',(time,wer,))
+
+
 print(name + ' is present.')
 print(n_days)
 total_classes=5
@@ -74,7 +82,7 @@ connection.close()
 
 cap.release()
 
-my_path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\\barcode.py" #Change the path 
+my_path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\\attendance.db" #Change the path 
 my_conn = sqlite3.connect(my_path)
 print("Connected to database successfully")
 
