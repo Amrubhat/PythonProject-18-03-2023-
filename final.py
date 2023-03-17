@@ -84,7 +84,7 @@ path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\
 gc = pygsheets.authorize(service_account_file=path)
 sheetname='cnk'
 sh=gc.open(sheetname)
-wks = sh.worksheet_by_title('std')
+wks = sh.worksheet_by_title('19_Mar')
 wks.clear()
 wks.set_dataframe(df,(1,1),copy_index=True,extend=True)  
  
