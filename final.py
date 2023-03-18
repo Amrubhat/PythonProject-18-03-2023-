@@ -68,6 +68,7 @@ if attended<=classes_held:
         WHERE
             usn=?;
     ''',(time,attended,classes_held,percentage,eligibility,wer,))
+    print("Marked present")
 else:
     print("Last working day of current semester is over")
 
