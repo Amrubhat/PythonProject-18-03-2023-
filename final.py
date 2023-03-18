@@ -6,16 +6,22 @@ import sqlite3
 import pandas as pd
 import pygsheets
 
+#connecting database
 connection = sqlite3.connect('attendance.db')
 c = connection.cursor()
+
 eligibility="ineligible"
 mydata=0
 classes_held=5
 
 print("Reading...")
+
+#start webcam
 cap=cv2.VideoCapture(0)
 cap.set(3,640)
 cap.set(4,480)
+
+#scanning barcode
 while True:
     success,img=cap.read()
     ret, bw_im = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
@@ -31,7 +37,7 @@ while True:
     if k==27:
         break
 
-
+#removing spaces and fetching data
 wer=mydata.strip()
 c.execute("SELECT * FROM attendance WHERE usn=?", (mydata.strip(),))
 row = c.fetchall()
@@ -41,12 +47,16 @@ for tuple in row:
 status = 'present'
 attended=int(attended+1)
 
+#record time
 time = datetime.now().strftime('%H:%M:%S')
 classes_held=5
+
+#calculation of attendance and checking eligibility
 percentage = round((attended / classes_held) * 100, 2)
 if percentage>=85:
     eligibility="eligible"
 
+#updating data to database
 if attended<=classes_held:
     c.execute('''UPDATE attendance 
         SET status='present',
@@ -66,7 +76,7 @@ connection.commit()
 connection.close()
 cap.release()
 
-
+#connecting database to google sheets
 my_path="C:\\Users\\Vinuta\\OneDrive\\Documents\\GitHub\\PythonProject-18-03-2023-\\attendance.db" #Change the path 
 my_conn = sqlite3.connect(my_path)
 print("Connected to database successfully")
