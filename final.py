@@ -1,7 +1,6 @@
 import cv2
 from pyzbar.pyzbar import decode
 import sqlite3
-from datetime import datetime
 import sqlite3
 import pandas as pd
 import pygsheets
@@ -42,13 +41,12 @@ wer=mydata.strip()
 c.execute("SELECT * FROM attendance WHERE usn=?", (mydata.strip(),))
 row = c.fetchall()
 for tuple in row:
-    id,name,usn,status,time,attended,percentage,classes_held,eligibility=tuple
+    id,name,usn,attended,percentage,classes_held,eligibility=tuple
 
-status = 'present'
+
 attended=int(attended+1)
 
-#record time
-time = datetime.now().strftime('%H:%M:%S')
+
 classes_held=5
 
 #calculation of attendance and checking eligibility
@@ -59,15 +57,13 @@ if percentage>=85:
 #updating data to database
 if attended<=classes_held:
     c.execute('''UPDATE attendance 
-        SET status='present',
-            time=?,
-            attended=?,
+        SET attended=?,
             classes_held=?,
             percentage=?,
             eligibility=?
         WHERE
             usn=?;
-    ''',(time,attended,classes_held,percentage,eligibility,wer,))
+    ''',(attended,classes_held,percentage,eligibility,wer,))
     print("Marked present")
 else:
     print("Last working day of current semester is over")
